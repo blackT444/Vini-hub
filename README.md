@@ -1,59 +1,69 @@
--- Criar um GUI para o jogador
-local Players = game:GetService("Players")
+-- Crie uma tela principal
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "PlayerNamesScreen"
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
--- Função para criar BillboardGui para cada jogador
-local function createPlayerNameTags()
-    for _, player in pairs(Players:GetPlayers()) do
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            -- Criar o BillboardGui
-            local billboardGui = Instance.new("BillboardGui")
-            billboardGui.Size = UDim2.new(0, 200, 0, 50)
-            billboardGui.Adornee = player.Character.HumanoidRootPart
-            billboardGui.Name = "PlayerNameTag"
-            billboardGui.AlwaysOnTop = true
+-- Slide Bonito com Cor Azul
+local Frame1 = Instance.new("Frame")
+Frame1.Size = UDim2.new(1, 0, 1, 0)
+Frame1.BackgroundColor3 = Color3.fromRGB(0, 102, 204) -- Cor azul
+Frame1.Parent = ScreenGui
 
-            -- Criar o TextLabel
-            local nameLabel = Instance.new("TextLabel")
-            nameLabel.Size = UDim2.new(1, 0, 1, 0)
-            nameLabel.Text = player.Name
-            nameLabel.BackgroundTransparency = 1
-            nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            nameLabel.Font = Enum.Font.SourceSans
-            nameLabel.TextSize = 20
-            nameLabel.Parent = billboardGui
+local Frame2 = Instance.new("Frame")
+Frame2.Size = UDim2.new(0.8, 0, 0.6, 0)
+Frame2.Position = UDim2.new(0.1, 0, 0.2, 0)
+Frame2.BackgroundColor3 = Color3.fromRGB(51, 153, 255)
+Frame2.Parent = Frame1
 
-            -- Anexar o BillboardGui à HumanoidRootPart
-            billboardGui.Parent = player.Character.HumanoidRootPart
+local Frame3 = Instance.new("Frame")
+Frame3.Size = UDim2.new(0.6, 0, 0.4, 0)
+Frame3.Position = UDim2.new(0.2, 0, 0.3, 0)
+Frame3.BackgroundColor3 = Color3.fromRGB(102, 204, 255)
+Frame3.Parent = Frame2
 
-            -- Conectar ao evento de respawn
-            player.Character.Humanoid.Died:Connect(function()
-                billboardGui:Destroy()  -- Remover o nome quando o jogador morrer
-            end)
+-- Nomes dos Jogadores em Tempo Real
+local PlayerList = Instance.new("TextLabel")
+PlayerList.Size = UDim2.new(0.3, 0, 0.6, 0)
+PlayerList.Position = UDim2.new(0.35, 0, 0.2, 0)
+PlayerList.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+PlayerList.TextScaled = true
+PlayerList.Text = "Jogadores:\n"
+PlayerList.Parent = Frame1
 
-            -- Conectar ao evento de respawn
-            player.CharacterAdded:Connect(function(character)
-                -- Remover o nome antigo se existir
-                local oldNameTag = character:FindFirstChild("PlayerNameTag")
-                if oldNameTag then
-                    oldNameTag:Destroy()
-                end
-                
-                -- Criar novo BillboardGui após respawn
-                local newBillboardGui = billboardGui:Clone()
-                newBillboardGui.Adornee = character:WaitForChild("HumanoidRootPart")
-                newBillboardGui.Parent = character.HumanoidRootPart
-            end)
-        end
+-- Função para atualizar a lista de nomes dos jogadores
+local function updatePlayerList()
+    local playerNames = "Jogadores:\n"
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        playerNames = playerNames .. player.Name .. "\n"
     end
+    PlayerList.Text = playerNames
 end
 
--- Criar nomes ao entrar no jogo
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(character)
-        wait(1) -- Esperar o personagem carregar
-        createPlayerNameTags()  -- Criar etiquetas para novos jogadores
-    end)
-end)
+-- Conectar a função ao evento de jogadores adicionados/removidos
+game.Players.PlayerAdded:Connect(updatePlayerList)
+game.Players.PlayerRemoving:Connect(updatePlayerList)
 
--- Criar nomes para os jogadores que já estão no jogo
-createPlayerNameTags()
+-- Atualizar a lista inicialmente
+updatePlayerList()
+
+-- Botão para Ligar/Desligar a Visualização dos Jogadores
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+ToggleButton.Position = UDim2.new(0.4, 0, 0.85, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 153, 255)
+ToggleButton.TextScaled = true
+ToggleButton.Text = "Desligar"
+ToggleButton.Parent = Frame1
+
+-- Variável para controlar a visualização dos nomes dos jogadores
+local showPlayerNames = true
+
+-- Função para alternar a visualização dos nomes dos jogadores
+local function togglePlayerNames()
+    showPlayerNames = not showPlayerNames
+    PlayerList.Visible = showPlayerNames
+    ToggleButton.Text = showPlayerNames and "Desligar" or "Ligar"
+end
+
+-- Conectar a função ao evento de clique do botão
+ToggleButton.MouseButton1Click:Connect(togglePlayerNames)
