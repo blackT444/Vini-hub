@@ -12,24 +12,22 @@ local function createESP(player)
     billboardGui.Size = UDim2.new(2, 0, 1, 0)
     billboardGui.AlwaysOnTop = true
 
-    -- Criar um rótulo de texto para o nome do jogador
+    -- Criar um rótulo de texto grande e branco para o nome do jogador
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Parent = billboardGui
     nameLabel.BackgroundTransparency = 1
     nameLabel.Size = UDim2.new(1, 0, 1, 0)
     nameLabel.Text = player.Name
-    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255) -- Texto branco
     nameLabel.TextScaled = true
 
-    -- Criar uma caixa em torno do jogador
-    local box = Instance.new("BoxHandleAdornment")
-    box.Parent = billboardGui
-    box.Adornee = player.Character.PrimaryPart
-    box.Size = player.Character.PrimaryPart.Size + Vector3.new(1, 1, 1)
-    box.Transparency = 0.7
-    box.ZIndex = 0
-    box.AlwaysOnTop = true
-    box.Color3 = Color3.fromRGB(255, 0, 0) -- Cor vermelha
+    -- Aplicar transparência para ver o avatar do jogador através das paredes
+    for _, part in pairs(player.Character:GetChildren()) do
+        if part:IsA("BasePart") then
+            part.Transparency = 0.5 -- Ajuste a transparência conforme necessário
+            part.CanCollide = false -- Opcional: Permitir atravessar o jogador
+        end
+    end
 
     billboardGui.Parent = player.Character.Head
 end
@@ -73,14 +71,16 @@ local function toggleESP()
     showESP = not showESP
     for _, player in pairs(game.Players:GetPlayers()) do
         if player ~= game.Players.LocalPlayer then
-            local esp = player.Character:FindFirstChild("Head"):FindFirstChild("ESP")
+            local character = player.Character
+            for _, part in pairs(character:GetChildren()) do
+                if part:IsA("BasePart") then
+                    part.Transparency = showESP and 0.5 or 0
+                end
+            end
+            local esp = character:FindFirstChild("Head"):FindFirstChild("ESP")
             if esp then
                 esp.Enabled = showESP
             end
         end
     end
-    ToggleButton.Text = showESP and "Desligar" or "Ligar"
-end
-
--- Conectar a função ao evento de clique do botão
-ToggleButton.MouseButton1Click:Connect(toggleESP)
+    ToggleButton.Text = showESP and
