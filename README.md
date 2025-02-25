@@ -1,104 +1,59 @@
 -- Criar um GUI para o jogador
-local player = game.Players.LocalPlayer
-local gui = Instance.new("ScreenGui", player.PlayerGui)
+local Players = game:GetService("Players")
 
--- Função para criar botões
-local function createButton(text, position, callback)
-    local button = Instance.new("TextButton")
-    button.Text = text
-    button.Size = UDim2.new(0, 200, 0, 50)
-    button.Position = position
-    button.Parent = gui
-    button.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-    
-    button.MouseButton1Click:Connect(callback)
-end
+-- Função para criar BillboardGui para cada jogador
+local function createPlayerNameTags()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            -- Criar o BillboardGui
+            local billboardGui = Instance.new("BillboardGui")
+            billboardGui.Size = UDim2.new(0, 200, 0, 50)
+            billboardGui.Adornee = player.Character.HumanoidRootPart
+            billboardGui.Name = "PlayerNameTag"
+            billboardGui.AlwaysOnTop = true
 
--- Função para criar TextBoxes
-local function createTextBox(position, placeholder)
-    local textBox = Instance.new("TextBox")
-    textBox.Size = UDim2.new(0, 200, 0, 50)
-    textBox.Position = position
-    textBox.PlaceholderText = placeholder
-    textBox.Parent = gui
-    textBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            -- Criar o TextLabel
+            local nameLabel = Instance.new("TextLabel")
+            nameLabel.Size = UDim2.new(1, 0, 1, 0)
+            nameLabel.Text = player.Name
+            nameLabel.BackgroundTransparency = 1
+            nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            nameLabel.Font = Enum.Font.SourceSans
+            nameLabel.TextSize = 20
+            nameLabel.Parent = billboardGui
 
-    return textBox
-end
+            -- Anexar o BillboardGui à HumanoidRootPart
+            billboardGui.Parent = player.Character.HumanoidRootPart
 
--- Função para mostrar jogadores
-local function showPlayers()
-    -- Limpar opções anteriores
-    for _, child in pairs(gui:GetChildren()) do
-        if child:IsA("TextLabel") then
-            child:Destroy()
+            -- Conectar ao evento de respawn
+            player.Character.Humanoid.Died:Connect(function()
+                billboardGui:Destroy()  -- Remover o nome quando o jogador morrer
+            end)
+
+            -- Conectar ao evento de respawn
+            player.CharacterAdded:Connect(function(character)
+                -- Remover o nome antigo se existir
+                local oldNameTag = character:FindFirstChild("PlayerNameTag")
+                if oldNameTag then
+                    oldNameTag:Destroy()
+                end
+                
+                -- Criar novo BillboardGui após respawn
+                local newBillboardGui = billboardGui:Clone()
+                newBillboardGui.Adornee = character:WaitForChild("HumanoidRootPart")
+                newBillboardGui.Parent = character.HumanoidRootPart
+            end)
         end
     end
-
-    -- Criar um label para cada jogador
-    local yOffset = 0
-    for _, v in pairs(game.Players:GetPlayers()) do
-        if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
-            local playerLabel = Instance.new("TextLabel")
-            playerLabel.Text = v.Name .. " - Tamanho: " .. tostring(v.Character:GetModelSize())
-            playerLabel.Size = UDim2.new(0, 200, 0, 50)
-            playerLabel.Position = UDim2.new(0, 0, 0, yOffset)
-            playerLabel.Parent = gui
-            yOffset = yOffset + 50
-        end
-    end
 end
 
--- 1. Ver forma e nome dos jogadores
-createButton("Ver jogadores", UDim2.new(0, 0, 0, 0), showPlayers)
-
--- 2. Ajuste de velocidade
-local speedTextBox = createTextBox(UDim2.new(0, 0, 0, 60), "Velocidade (1-100)")
-createButton("Ajustar Velocidade", UDim2.new(0, 0, 0, 120), function()
-    local speedValue = tonumber(speedTextBox.Text)
-    if speedValue and speedValue >= 1 and speedValue <= 100 then
-        player.Character.Humanoid.WalkSpeed = speedValue
-    else
-        print("Por favor, insira um valor válido de velocidade entre 1 e 100.")
-    end
+-- Criar nomes ao entrar no jogo
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        wait(1) -- Esperar o personagem carregar
+        createPlayerNameTags()  -- Criar etiquetas para novos jogadores
+    end)
 end)
 
--- 3. Ajuste de pulo
-local jumpTextBox = createTextBox(UDim2.new(0, 0, 0, 180), "Pulo (1-100)")
-createButton("Ajustar Pulo", UDim2.new(0, 0, 0, 240), function()
-    local jumpValue = tonumber(jumpTextBox.Text)
-    if jumpValue and jumpValue >= 1 and jumpValue <= 100 then
-        player.Character.Humanoid.JumpPower = jumpValue
-    else
-        print("Por favor, insira um valor válido de pulo entre 1 e 100.")
-    end
-end)
-
--- 4. Fry para voar
-createButton("Voar", UDim2.new(0, 0, 0, 300), function()
-    local character = player.Character
-    if character then
-        character:Move(Vector3.new(0, 50, 0))
-    end
-end)
-
--- 5. Ficar invisível
-createButton("Ficar Invisível", UDim2.new(0, 0, 0, 360), function()
-    local character = player.Character
-    if character then
-        character.HumanoidRootPart.Transparency = 1
-        for _, part in pairs(character:GetChildren()) do
-            if part:IsA("Part") then
-                part.Transparency = 1
-            end
-        end
-    end
-end)
-
--- 6. Atravessar paredes
-createButton("Atravessar Paredes", UDim2.new(0, 0, 0, 420), function()
-    local character = player.Character
-    if character then
-        character.HumanoidRootPart.CanCollide = false
-    end
-end)
+-- Criar nomes para os jogadores que já estão no jogo
+createPlayerNameTags()
