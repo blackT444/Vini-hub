@@ -26,12 +26,31 @@ local function createTextBox(position, placeholder)
     return textBox
 end
 
--- 1. Ver forma e nome dos jogadores
-createButton("Ver jogadores", UDim2.new(0, 0, 0, 0), function()
-    for _, v in pairs(game.Players:GetPlayers()) do
-        print(v.Name, v.Character and v.Character:GetModelSize())
+-- Função para mostrar jogadores
+local function showPlayers()
+    -- Limpar opções anteriores
+    for _, child in pairs(gui:GetChildren()) do
+        if child:IsA("TextLabel") then
+            child:Destroy()
+        end
     end
-end)
+
+    -- Criar um label para cada jogador
+    local yOffset = 0
+    for _, v in pairs(game.Players:GetPlayers()) do
+        if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+            local playerLabel = Instance.new("TextLabel")
+            playerLabel.Text = v.Name .. " - Tamanho: " .. tostring(v.Character:GetModelSize())
+            playerLabel.Size = UDim2.new(0, 200, 0, 50)
+            playerLabel.Position = UDim2.new(0, 0, 0, yOffset)
+            playerLabel.Parent = gui
+            yOffset = yOffset + 50
+        end
+    end
+end
+
+-- 1. Ver forma e nome dos jogadores
+createButton("Ver jogadores", UDim2.new(0, 0, 0, 0), showPlayers)
 
 -- 2. Ajuste de velocidade
 local speedTextBox = createTextBox(UDim2.new(0, 0, 0, 60), "Velocidade (1-100)")
