@@ -1,21 +1,34 @@
 -- Crie uma tela principal
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "PlayerESP"
+ScreenGui.Name = "PlayerNamesScreen"
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
--- Função para criar ESP (Extra Sensory Perception) para jogadores
+-- Slide Bonito com Cor Azul
+local Frame1 = Instance.new("Frame")
+Frame1.Size = UDim2.new(1, 0, 1, 0)
+Frame1.BackgroundColor3 = Color3.fromRGB(0, 102, 204) -- Cor azul
+Frame1.Parent = ScreenGui
+
+local Frame2 = Instance.new("Frame")
+Frame2.Size = UDim2.new(0.8, 0, 0.6, 0)
+Frame2.Position = UDim2.new(0.1, 0, 0.2, 0)
+Frame2.BackgroundColor3 = Color3.fromRGB(51, 153, 255)
+Frame2.Parent = Frame1
+
+local Frame3 = Instance.new("Frame")
+Frame3.Size = UDim2.new(0.6, 0, 0.4, 0)
+Frame3.Position = UDim2.new(0.2, 0, 0.3, 0)
+Frame3.BackgroundColor3 = Color3.fromRGB(102, 204, 255)
+Frame3.Parent = Frame2
+
+-- Função para criar ESP para jogadores
 local function createESP(player)
-    -- Aguardar até que o personagem do jogador esteja carregado
-    local character = player.Character or player.CharacterAdded:Wait()
-    
-    -- Criar um BillboardGui para o nome do jogador
     local billboardGui = Instance.new("BillboardGui")
     billboardGui.Name = "ESP"
-    billboardGui.Adornee = character:WaitForChild("Head")
+    billboardGui.Adornee = player.Character:WaitForChild("Head")
     billboardGui.Size = UDim2.new(2, 0, 1, 0)
     billboardGui.AlwaysOnTop = true
 
-    -- Criar um rótulo de texto para o nome do jogador
     local nameLabel = Instance.new("TextLabel")
     nameLabel.Parent = billboardGui
     nameLabel.BackgroundTransparency = 1
@@ -24,35 +37,59 @@ local function createESP(player)
     nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     nameLabel.TextScaled = true
 
-    -- Criar uma caixa em torno do jogador
-    local box = Instance.new("BoxHandleAdornment")
-    box.Parent = billboardGui
-    box.Adornee = character.PrimaryPart
-    box.Size = character.PrimaryPart.Size + Vector3.new(1, 1, 1)
-    box.Transparency = 0.7
-    box.ZIndex = 0
-    box.AlwaysOnTop = true
-    box.Color3 = Color3.fromRGB(255, 0, 0) -- Cor vermelha
-
-    billboardGui.Parent = character.Head
-
-    -- Conectar a remoção do ESP quando o personagem for destruído
-    character.AncestryChanged:Connect(function(_, parent)
-        if not parent then
-            billboardGui:Destroy()
-        end
-    end)
+    billboardGui.Parent = player.Character.Head
 end
 
--- Função para adicionar ESP a todos os jogadores
-local function addESPToPlayers()
-    for _, player in pairs(game.Players:GetPlayers()) do
-        if player ~= game.Players.LocalPlayer then
-            createESP(player)
-        end
+-- Atualizar a lista de nomes dos jogadores na GUI
+local PlayerList = Instance.new("TextLabel")
+PlayerList.Size = UDim2.new(0.8, 0, 0.6, 0)
+PlayerList.Position = UDim2.new(0.1, 0, 0.2, 0)
+PlayerList.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+PlayerList.TextScaled = true
+PlayerList.Text = "Jogadores:\n"
+PlayerList.Parent = Frame1
+
+-- Função para atualizar a lista de nomes dos jogadores
+local function updatePlayerList()
+    local playerNames = "Jogadores:\n"
+    for _, player in ipairs(game.Players:GetPlayers()) do
+        playerNames = playerNames .. player.Name .. "\n"
+        createESP(player)  -- Criar ESP para cada jogador
     end
+    PlayerList.Text = playerNames
 end
 
--- Conectar a função ao evento de jogadores adicionados
+-- Conectar a função ao evento de jogadores adicionados/removidos
 game.Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function(character)
+    player.CharacterAdded:Connect(function()
+        createESP(player)  -- Criar ESP quando o personagem do jogador for adicionado
+    end)
+    updatePlayerList()  -- Atualizar a lista quando um novo jogador entra
+end)
+
+game.Players.PlayerRemoving:Connect(updatePlayerList)
+
+-- Atualizar a lista inicialmente
+updatePlayerList()
+
+-- Botão para Ligar/Desligar a Visualização dos Jogadores
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Size = UDim2.new(0.2, 0, 0.1, 0)
+ToggleButton.Position = UDim2.new(0.4, 0, 0.85, 0)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 153, 255)
+ToggleButton.TextScaled = true
+ToggleButton.Text = "Desligar"
+ToggleButton.Parent = Frame1
+
+-- Variável para controlar a visualização dos nomes dos jogadores
+local showPlayerNames = true
+
+-- Função para alternar a visualização dos nomes dos jogadores
+local function togglePlayerNames()
+    showPlayerNames = not showPlayerNames
+    PlayerList.Visible = showPlayerNames
+    ToggleButton.Text = showPlayerNames and "Desligar" or "Ligar"
+end
+
+-- Conectar a função ao evento de clique do botão
+ToggleButton.MouseButton1Click:Connect(togglePlayerNames)
