@@ -23,8 +23,8 @@ Frame3.Parent = Frame2
 
 -- Nomes dos Jogadores em Tempo Real
 local PlayerList = Instance.new("TextLabel")
-PlayerList.Size = UDim2.new(0.3, 0, 0.6, 0)
-PlayerList.Position = UDim2.new(0.35, 0, 0.2, 0)
+PlayerList.Size = UDim2.new(0.8, 0, 0.6, 0)
+PlayerList.Position = UDim2.new(0.1, 0, 0.2, 0)
 PlayerList.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 PlayerList.TextScaled = true
 PlayerList.Text = "Jogadores:\n"
@@ -67,3 +67,9 @@ end
 
 -- Conectar a função ao evento de clique do botão
 ToggleButton.MouseButton1Click:Connect(togglePlayerNames)
+
+-- Atualizar a lista de jogadores quando o jogo começar
+game.Players.PlayerAdded:Connect(updatePlayerList)
+for _, player in ipairs(game.Players:GetPlayers()) do
+    updatePlayerList()
+end
